@@ -391,6 +391,7 @@ def sim(plot_condition = False, condition_guidance = False, example = False, fin
                 A_loop[i], phi_loop[i] = cmath.polar(DFTxwn[i])
             
         else: # after the first step we will take the final simulation of the algorithm (5th step)
+            x_WN = x_loop
             DFTloop = np.fft.fft(x_loop)
             phi_loop = np.ones(len(DFTloop.real))
             A_loop = np.ones(len(DFTloop.real))
