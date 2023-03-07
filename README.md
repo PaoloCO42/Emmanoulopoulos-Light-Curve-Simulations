@@ -3,19 +3,17 @@ Hi, I'm Paolo Cristarella Orestano, a PhD student in Perugia, Italy.
 
 Instructions for light Curve simulations from Emmanoulopoulos algorithm, as according to Emmanoulopoulos et al 2013, Monthly Notices of the Royal Astronomical Society, 433, 907.
 The script simulate_lc.py comes from https://github.com/ttshimiz/simulate_lc, for the first step of the algorithm: Timmer Koenig simulation.
-While the scripts I personally wrote are named with "pco" at the end.
+While the scripts I personally wrote are named with "PCO" at the end.
 
 ######################################################
 
 INSTRUCTIONS:
 Put all the scripts in the same folder.
-data_from_LCR_pco.py and simulate_lc.py are imported in the main script: LC_simulations_pco.py
-
-The guided version of the main script is Help_LC_simulations_pco.py
+data_from_LCR_pco.py and simulate_lc.py are imported in the script: Help_EmmanoulopoulosSimulationsPCO.py, that is a guided version.
 Try this one to be guided in the simulations.
 Launch the script, then follow the instructions that appear on the terminal.
 
-When you will become familiar with the code I suggest you to use the script LC_simulations_pco.py, or import it and then use the sim() function wherever you need it with your data or with data from the Light Curve Repository.
+When you will become familiar with the code I suggest you to use the script EmmanoulopoulosSimPCO.py with your data or with data from the Light Curve Repository.
 
 ######################################################
 
@@ -34,8 +32,29 @@ json
 re
 
 ######################################################
+Main funtion of the main script EmmanoulopoulosSimPCO.py:
 
-Main function:
+sim(plot_condition = False, final_plot = False, time = None, flux = None, flux_error = None, temporalbin = None, PSDmodel = None, PSDparams = None, source_name_title = None, label_flux = None):
+    
+    # plot_condition     (boolean)   to show plots at each step of the algorithm.
+    # final_plot         (boolean)   to show just the plot of Emmanoulopoulos simulated Light Curve.
+    # time             (numpy array) time of observations.
+    # flux             (numpy array) flux of the source.
+    # flux_error       (numpy array) flux uncertainty of the source.
+    # temporalbin          (int)     sampling time, required with your own data.
+    # PSDmodel            (string)   Power Spectral Density (PSD) model for Timmer Konig simulation, if None it is considered a simple unbroken law. Possibilities: unbroken, sharp, slow.
+    # PSDparams      (list of float) Parameters for PSD, the numbers and the type depends on the model (4 unbroken, 5 sharp, 5 slow). See below for more details.
+    # source_name_title   (string)   Title name of the source for plots if you use your own data.
+    # label_flux   (string)   label for the flux
+        
+    #  return  sim_time, x_Final
+
+
+
+###############
+
+
+Main function in the help script:
 
 sim(plot_condition = False, condition_guidance = False, example = False, final_plot = False, time = None, flux = None, flux_error = None, temporalbin = None, PSDmodel = None, PSDparams = None, source_name_title = None, spec = None)
     
@@ -59,6 +78,7 @@ return sim_time, x_Final
     # x_Final  (array)  simulated flux from Emmanoulopoulos algorithm
     
 ######################################################
+
 
 Algorithm Steps
 
