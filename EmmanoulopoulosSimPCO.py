@@ -1,4 +1,6 @@
 # Create artificial light curves with the algorithm from Emmanoulopoulos et al., 2013, Monthly Notices of the Royal Astronomical Society, 433, 907.
+import sklearn
+from sklearn.linear_model import LinearRegression
 import simulate_lc    # to create Timmer Koenig light curves
 import numpy as np  
 import matplotlib.pyplot as plt
@@ -50,7 +52,9 @@ def graphs(Flux,Time,Title, sim_step = False, Flux_error = None, ULtime = None, 
         min_norm = 0
     else:
         min_norm = 1.25
-    ax1.set_ylim(min(Flux)*min_norm,max(Flux)*1.25)
+
+    if ( not(  math.isnan(min(Flux)) and math.isinf(min(Flux)) and math.isnan(max(Flux)) and math.isinf(max(Flux)) )  ):
+        ax1.set_ylim(min(Flux)*min_norm,max(Flux)*1.25)
     
     if Time[0] > 1000:
         ax1.set_xlabel('$MJD$',fontsize = 20)
@@ -100,6 +104,16 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
         
     #######################
         
+    sorting = np.argsort(time)
+    time = time[sorting]
+    flux = flux[sorting]
+    flux_error = flux_error[sorting]
+
+    maskNaN = not math.isnan(flux)
+    flux = flux[maskNaN]
+    time = time[maskNaN]
+    flux_error = flux_error[maskNaN]
+
     ULflux = None
     ULtime = None
     
@@ -113,8 +127,15 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
     maskFreq = simpleFreq > 0
     simpleFreq = simpleFreq[maskFreq]
     simplePSD = simplePSD[maskFreq]
-    
+
+
+
+    for i in range(0,len(simplePSD)):
+        simplePSD[i] = float(round(simplePSD[i].real,8))
+        simpleFreq[i] = float(simpleFreq[i])
+        
     z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
+
     p1 = z[0]   # angular coefficient
     p0 = z[1]   # intercept
     
@@ -135,10 +156,10 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
     sampling_days = temporalbin #mode(delta_time)   # 30, 7, 3 days if it comes from the Fermi Light Curve Repository (LCR)
     sampling_seconds  = sampling_days*24*3600
     
-    n = (time[-1]-time[0])/sampling_days
+    n = int((time[-1]-time[0])/sampling_days)
     
     # Time array for simulations
-    sim_time = np.arange(0,sampling_days*n,sampling_days)
+    sim_time = np.arange(0,sampling_days*int(n),sampling_days)
     
     # Set the mean for the simulated light curve 
     mean_lc = np.mean(flux)
@@ -163,7 +184,7 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
     # '------------ First step of the algorithm ------------'
     # 'Timmer Koenig LC simulation, with the same PSD model and parameters of the source')
     # Simulate the light curve as in Timmer Koenig 1995
-    x_TK  =  simulate_lc.lc_sim(int(n), sampling_days, mean_lc, PSDmodel, PSDparams)
+    x_TK  =  simulate_lc.lc_sim(int(n), sampling_seconds, mean_lc, PSDmodel, PSDparams)
 
     # TK simulation plots: LC, PDF, PSD
     if plot_condition:
