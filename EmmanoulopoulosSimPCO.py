@@ -103,17 +103,17 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
     #  return  sim_time, x_Final
         
     #######################
-        
-    sorting = np.argsort(time)
-    time = time[sorting]
-    flux = flux[sorting]
-    flux_error = flux_error[sorting]
 
     maskNaN = not math.isnan(flux)
     flux = flux[maskNaN]
     time = time[maskNaN]
     flux_error = flux_error[maskNaN]
-
+    
+    sorting = np.argsort(time)
+    time = time[sorting]
+    flux = flux[sorting]
+    flux_error = flux_error[sorting]
+    
     ULflux = None
     ULtime = None
     
