@@ -104,7 +104,7 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
         
     #######################
 
-    maskNaN = not math.isnan(flux)
+    maskNaN = np.invert(np.isnan(flux))
     flux = flux[maskNaN]
     time = time[maskNaN]
     flux_error = flux_error[maskNaN]
