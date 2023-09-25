@@ -324,7 +324,7 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
         if p1_pre == p1_loop: 
             index_converge += 1
             
-        if index_converge >= 30:
+        if index_converge >= 10:
             converge = True
         
         # "extreme" condition, the convergence should be already reached
