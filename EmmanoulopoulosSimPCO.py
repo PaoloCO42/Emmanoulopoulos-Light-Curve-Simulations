@@ -87,10 +87,11 @@ def graphs(Flux,Time,Title, sim_step = False, Flux_error = None, ULtime = None, 
     ax3.set_xscale('log')
     ax3.set_yscale('log')
 
-def sim(plot_condition = False, final_plot = False, time = None, flux = None, flux_error = None, temporalbin = None, PSDmodel = None, PSDparams = None, source_name_title = None, label_flux = None):
+def sim(plot_condition = False, final_plot = False, fast = False , time = None, flux = None, flux_error = None, temporalbin = None, PSDmodel = None, PSDparams = None, source_name_title = None, label_flux = None):
     
     # plot_condition     (boolean)   to show plots at each step of the algorithm.
     # final_plot         (boolean)   to show just the plot of Emmanoulopoulos simulated Light Curve.
+    # fast               (boolean)   make faster simulations without check on nan and without sorting
     # time             (numpy array) time of observations, it is considered in Modified Julian Date (MJD).
     # flux             (numpy array) flux of the source.
     # flux_error       (numpy array) flux uncertainty of the source.
@@ -104,17 +105,22 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
         
     #######################
 
-    maskNaN = np.invert(np.isnan(flux))
-    flux = flux[maskNaN]
-    time = time[maskNaN]
-    if isinstance(flux_error, np.ndarray):
-        flux_error = flux_error[maskNaN]
+    ########
+    # if you want also to be sure that everything works fine even with fast simulations, I suggest to copy this short section outside a loop cycle using the modified arrays (without nan and sorted) 
+    if not fast: 
+        maskNaN = np.invert(np.isnan(flux))
+        flux = flux[maskNaN]
+        time = time[maskNaN]
+        if isinstance(flux_error, np.ndarray):
+            flux_error = flux_error[maskNaN]
+        
+        sorting = np.argsort(time)
+        time = time[sorting]
+        flux = flux[sorting]
+        if isinstance(flux_error, np.ndarray):
+            flux_error = flux_error[sorting]
+    ########
     
-    sorting = np.argsort(time)
-    time = time[sorting]
-    flux = flux[sorting]
-    if isinstance(flux_error, np.ndarray):
-        flux_error = flux_error[sorting]
     
     ULflux = None
     ULtime = None
@@ -131,15 +137,15 @@ def sim(plot_condition = False, final_plot = False, time = None, flux = None, fl
     simplePSD = simplePSD[maskFreq]
 
 
-
-    for i in range(0,len(simplePSD)):
-        simplePSD[i] = float(round(simplePSD[i].real,8))
-        simpleFreq[i] = float(simpleFreq[i])
-        
-    z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
-
-    p1 = z[0]   # angular coefficient
-    p0 = z[1]   # intercept
+    if PSDparams == None:
+        for i in range(0,len(simplePSD)):
+            simplePSD[i] = float(round(simplePSD[i].real,8))
+            simpleFreq[i] = float(simpleFreq[i])
+            
+        z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
+    
+        p1 = z[0]   # angular coefficient
+        p0 = z[1]   # intercept
     
     # Source plots: Light Curve, Probability Density Function, Power Spectral Density
     if plot_condition:
