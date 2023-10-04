@@ -138,10 +138,6 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
 
 
     if PSDparams == None:
-        for i in range(0,len(simplePSD)):
-            simplePSD[i] = float(round(simplePSD[i].real,8))
-            simpleFreq[i] = float(simpleFreq[i])
-            
         z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
     
         p1 = z[0]   # angular coefficient
