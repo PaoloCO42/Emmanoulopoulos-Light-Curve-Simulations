@@ -320,12 +320,12 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
         if p1_pre == p1_loop: 
             index_converge += 1
             
-        if index_converge >= 30:
+        if index_converge >= 5:
             converge = True
         
         # "extreme" condition, the convergence should be already reached
-        if j_index>100: 
-            if round(p1_pre,8) == round(p1_loop,8):
+        if j_index>30: 
+            if round(p1_pre,4) == round(p1_loop,4):
                 converge = True
              
         p1_pre = p1_loop
