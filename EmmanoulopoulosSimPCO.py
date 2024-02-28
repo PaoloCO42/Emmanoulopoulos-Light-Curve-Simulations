@@ -1,37 +1,44 @@
 # Create artificial light curves with the algorithm from Emmanoulopoulos et al., 2013, Monthly Notices of the Royal Astronomical Society, 433, 907.
-import sklearn
-from sklearn.linear_model import LinearRegression
+
 import simulate_lc    # to create Timmer Koenig light curves
 import numpy as np  
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
-from matplotlib.ticker import PercentFormatter
-from matplotlib import colors
-from matplotlib.colors import LogNorm
 import scipy
-import scipy.stats as st
-from scipy.optimize import curve_fit
-from scipy import signal
 from scipy import interpolate
 import math
-from math import e
 import cmath
-import random
-#from statistics import mode
+import astropy.timeseries as tser
+from scipy.interpolate import interp1d
 
 params  =  {'xtick.labelsize':18,'ytick.labelsize':18}
 pylab.rcParams.update(params)
 
-def graphs(Flux,Time,Title, sim_step = False, Flux_error = None, ULtime = None, ULflux = None, label_flux = None):
-    SamplingFreq = 1/(Time[2] - Time[1])
-    Freq, PSD = scipy.signal.periodogram(Flux, SamplingFreq, scaling = 'density')
+def graphs(Flux, Time, Title, sim_step = False, Flux_error = None, Temporalbin = None, ULtime = None, ULflux = None, label_flux = None):
+    
+    if isinstance(Flux_error,np.ndarray):
+        ls = tser.LombScargle(Time, Flux, Flux_error, fit_mean = True, center_data = False)
+    else:
+        ls = tser.LombScargle(Time, Flux, fit_mean = True, center_data = False)
+    
+    if not Temporalbin:
+        sorting = np.argsort(Time)
+        Time = Time[sorting]
+        Temporalbin = Time[1] - Time[0]
+
+    minfreq = 1/(max(Time) - min(Time))
+    maxfreq = 1/(2*Temporalbin)
+    Freq, PSD = ls.autopower(samples_per_peak = 5, minimum_frequency = minfreq, maximum_frequency = maxfreq)
+    interpolatedfunction = interp1d(Freq, PSD, kind='linear', fill_value='extrapolate')
     mask = Freq > 0
     Freq = Freq[mask]
     PSD = PSD[mask]
-    Z = np.polyfit(np.log10(Freq),np.log10(PSD),1)
-    p1 = Z[0]   # angular coefficient
-    p0 = Z[1]   # intercept
-    
+    Freq = np.linspace(minfreq, maxfreq, len(Flux))
+    PSD = interpolatedfunction(Freq)
+    z = np.polyfit(np.log10(Freq),np.log10(PSD),1)
+    p1 = z[0]   # angular coefficient
+    p0 = z[1]   # intercept
+
     Fig = plt.figure(figsize = (16,9),tight_layout = True)
     ax1 = plt.subplot(211)  # LC
     ax2 = plt.subplot(223)  # PDF
@@ -78,7 +85,7 @@ def graphs(Flux,Time,Title, sim_step = False, Flux_error = None, ULtime = None, 
     ax2.set_ylabel('PDF',fontsize = 20)
 
     Text='$\delta$='+str(round(p1,2))
-    Coeff=np.poly1d(Z)
+    Coeff=np.poly1d(z)
     ax3.plot(Freq,PSD,'k.')
     ax3.plot(Freq,10**(Coeff(np.log10(Freq))),'r-', linewidth=2)
     ax3.set_xlabel('$\\nu$ $(days^{-1})$',fontsize = 20)
@@ -130,12 +137,21 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
     if source_name_title == None:
         nometitolo = ' '
         
-    samplingfreq = 1/temporalbin
-    simpleFreq, simplePSD = scipy.signal.periodogram(flux, samplingfreq, scaling = 'density')
-    maskFreq = simpleFreq > 0
-    simpleFreq = simpleFreq[maskFreq]
-    simplePSD = simplePSD[maskFreq]
+    samplingfreq = 1/(temporalbin*24*3600)
 
+    if isinstance(flux_error,np.ndarray):
+        ls = tser.LombScargle(time, flux, flux_error, fit_mean = True, center_data = False)
+    else:
+        ls = tser.LombScargle(time, flux, fit_mean = True, center_data = False)
+    minfreq = 1/(max(time) - min(time))
+    maxfreq = 1/(2*temporalbin)
+    simpleFreq, simplePSD = ls.autopower(samples_per_peak = 5, minimum_frequency = minfreq, maximum_frequency = maxfreq)
+    interpolatedfunction = interp1d(simpleFreq, simplePSD, kind='linear', fill_value='extrapolate')
+    simpleFreq = np.linspace(minfreq, maxfreq, len(flux))
+    simplePSD = interpolatedfunction(simpleFreq)
+    z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
+    p1 = z[0]   # angular coefficient
+    p0 = z[1]   # intercept
 
     if PSDparams == None:
         z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
@@ -149,7 +165,7 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
             title = 'Light Curve of '+source_name_title
         else:
             title = 'Light Curve of '+nometitolo
-        graphs(Flux = flux,Time = time,Title = title, sim_step = False, Flux_error = flux_error, ULtime = ULtime, ULflux = ULflux, label_flux = label_flux)
+        graphs(Flux = flux,Time = time,Title = title, sim_step = False, Flux_error = flux_error, Temporalbin = temporalbin, ULtime = ULtime, ULflux = ULflux, label_flux = label_flux)
     
         
     # Set n, the number of timesteps in the simulated light curve, the length of each timestep in seconds.
@@ -287,7 +303,7 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
         sim_time = sim_time[perm_time]
         x_loop = x_WN_sorted[perm_time]
         
-        samplingfreq = 1/temporalbin
+        samplingfreq = 1/(temporalbin*24*3600)
         simpleFreq, simplePSD = scipy.signal.periodogram(x_loop, samplingfreq, scaling = 'density')
         maskFreq = simpleFreq > 0
         simpleFreq = simpleFreq[maskFreq]
@@ -320,7 +336,7 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
         if p1_pre == p1_loop: 
             index_converge += 1
             
-        if index_converge >= 5:
+        if index_converge >= 3:
             converge = True
         
         # "extreme" condition, the convergence should be already reached
