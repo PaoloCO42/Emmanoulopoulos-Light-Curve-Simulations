@@ -149,13 +149,9 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
     interpolatedfunction = interp1d(simpleFreq, simplePSD, kind='linear', fill_value='extrapolate')
     simpleFreq = np.linspace(minfreq, maxfreq, len(flux))
     simplePSD = interpolatedfunction(simpleFreq)
-    z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
-    p1 = z[0]   # angular coefficient
-    p0 = z[1]   # intercept
 
     if PSDparams == None:
         z = np.polyfit(np.log10(simpleFreq),np.log10(simplePSD),1)
-    
         p1 = z[0]   # angular coefficient
         p0 = z[1]   # intercept
     
