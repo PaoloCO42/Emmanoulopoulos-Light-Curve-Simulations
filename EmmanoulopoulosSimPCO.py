@@ -176,7 +176,8 @@ def sim(plot_condition = False, final_plot = False, fast = False , time = None, 
     sampling_days = temporalbin #mode(delta_time)   # 30, 7, 3 days if it comes from the Fermi Light Curve Repository (LCR)
     sampling_seconds  = sampling_days*24*3600
     
-    n = int((time[-1]-time[0])/sampling_days)
+    # n = int((time[-1]-time[0])/sampling_days)
+    n = len(flux)  # in the simulations we will obtain the same number of points of the original curve
     
     # Time array for simulations
     sim_time = np.arange(0,sampling_days*int(n),sampling_days)
